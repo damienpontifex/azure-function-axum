@@ -1,7 +1,8 @@
 #![allow(dead_code)]
+use axum::http::StatusCode;
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
-use actix_web::{HttpResponse, Responder, post, web::Json};
+use axum::extract::Json;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -44,8 +45,7 @@ pub struct Sys {
     rand_guid: String,
 }
 
-#[post("/MyTimer")]
-pub(crate) async fn my_timer(trigger: Json<FunctionHandler>) -> impl Responder {
+pub(crate) async fn my_timer(Json(trigger): Json<FunctionHandler>) -> StatusCode {
     println!("Timer triggered at {:?}", trigger);
-    HttpResponse::Ok()
+    StatusCode::OK
 }

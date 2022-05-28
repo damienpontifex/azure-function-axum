@@ -1,39 +1,29 @@
 use std::env;
 use std::net::Ipv4Addr;
-use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, middleware::Logger, web::{self, Bytes}};
-use env_logger::Env;
+use axum::{routing::{get, post}, Router};
+use tower::ServiceBuilder;
+use tower_http::trace::TraceLayer;
 mod functions;
 
-async fn default_service(req: HttpRequest, bytes: Bytes) -> impl Responder {
-    println!("{} {}", req.method(), req.path());
-    println!("{:?}", String::from_utf8(bytes.to_vec()).unwrap());
-    HttpResponse::Ok()
-}
+#[tokio::main]
+async fn main() {
+    let port: u16 = env::var("FUNCTIONS_CUSTOMHANDLER_PORT").ok()
+            .and_then(|p| p.parse().ok())
+            .unwrap_or(3000);
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    let port_key = "FUNCTIONS_CUSTOMHANDLER_PORT";
-    let port: u16 = match env::var(port_key) {
-        Ok(val) => val.parse().expect("Custom Handler port is not a number!"),
-        Err(_) => 3000,
-    };
+    tracing_subscriber::fmt::init();
 
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).build();
+    let middleware_stack = ServiceBuilder::new()
+        .layer(TraceLayer::new_for_http())
+        .into_inner();
 
-    HttpServer::new(|| {
-        App::new()
-            .app_data(
-                // Json extractor configuration for this resource.
-                web::JsonConfig::default()
-                    .content_type(|mime| mime.subtype() == mime::JSON)
-            )
-            .wrap(Logger::default())
-            .wrap(Logger::new("%a %{User-Agent}i"))
-            .service(functions::greet_handler)
-            .service(functions::my_timer)
-            .default_service(web::route().to(default_service))
-    })
-    .bind((Ipv4Addr::UNSPECIFIED, port))?
-    .run()
-    .await
+    let app = Router::new()
+        .route("/api/HttpTrigger", get(functions::greet_handler))
+        .route("/MyTimer", post(functions::my_timer))
+        .layer(middleware_stack);
+
+    axum::Server::bind(&(Ipv4Addr::UNSPECIFIED, port).into())
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }

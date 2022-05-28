@@ -5,8 +5,7 @@ build:
 
 deploy-infra:
 	cd infrastructure && \
-	bicep build main.bicep && \
-	az deployment sub create --location australiaeast --template-file main.json
+	az deployment sub create --location australiaeast --template-file main.bicep
 
 deploy-app:
 	func azure functionapp publish rustfunction

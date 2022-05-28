@@ -44,3 +44,6 @@ __pycache__/
 /target
 handler
 main.json
+
+__azurite*
+__blobstorage__/
