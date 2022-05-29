@@ -1,6 +1,6 @@
 use std::env;
 use std::net::Ipv4Addr;
-use axum::{routing::{get, post}, Router};
+use axum::{routing::{get, post}, Router, http::StatusCode};
 use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 mod functions;
@@ -18,6 +18,7 @@ async fn main() {
         .into_inner();
 
     let app = Router::new()
+        .route("/", get(|| async { StatusCode::OK }))
         .route("/api/HttpTrigger", get(functions::greet_handler))
         .route("/MyTimer", post(functions::my_timer))
         .layer(middleware_stack);

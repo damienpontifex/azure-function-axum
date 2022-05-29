@@ -1,12 +1,8 @@
 param location string = resourceGroup().location
 param appName string
 param commonTags object
-param workspaceId string {
-  default: ''
-  metadata: {
-    description: 'Optional existing log analytics workspace. If not provided, one will be created'
-  }
-}
+@description('Optional existing log analytics workspace. If not provided, one will be created')
+param workspaceId string = ''
 
 var storageName = take(replace(toLower(appName), '-', ''), 24)
 
@@ -101,7 +97,7 @@ resource functionApp 'Microsoft.Web/sites@2020-06-01' = {
         }
         {
           name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~3'
+          value: '~4'
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'

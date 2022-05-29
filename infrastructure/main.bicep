@@ -1,11 +1,11 @@
-param location string = 'australiaeast'
-param environmentName string {
-  allowed: [
-    'dev'
-    'prod'
-  ]
-  default: 'dev'
-}
+targetScope = 'subscription'
+param location string = deployment().location
+
+@allowed([
+  'dev'
+  'prod'
+])
+param environmentName string = 'dev'
 param appName string = 'rustfunction'
 
 var commonTags = {
@@ -23,6 +23,7 @@ module app './function.bicep' = {
   name: 'functionApp'
   scope: resourceGroup(rg.name)
   params: {
+    location: location
     appName: appName
     commonTags: commonTags
   }
